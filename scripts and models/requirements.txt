@@ -1,9 +1,9 @@
 streamlit
-librosa>=0.10.0
-soundfile
-numpy
+numpy<1.24
 pandas
 scikit-learn
 joblib
-lightgbm
 xgboost
+lightgbm
+librosa==0.9.2
+soundfile
