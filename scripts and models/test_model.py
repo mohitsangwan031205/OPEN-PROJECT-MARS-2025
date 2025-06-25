@@ -4,21 +4,23 @@ import numpy as np
 import pandas as pd
 import librosa
 
-model_dir = "./"
-base_dir = "./"
+# Use the directory where this script is located
+BASE_DIR = os.path.dirname(__file__)
 
-calibrated_meta = joblib.load(model_dir + "calibrated_meta.pkl")
-meta_lgb = joblib.load(model_dir + "meta_lgb.pkl")
-le = joblib.load(model_dir + "label_encoder.pkl")
-thresholds = joblib.load(model_dir + "best_thresholds.pkl")
-vote_weights = joblib.load(model_dir + "voting_weights.pkl")
+# Load model components using robust path handling
+calibrated_meta = joblib.load(os.path.join(BASE_DIR, "calibrated_meta.pkl"))
+meta_lgb = joblib.load(os.path.join(BASE_DIR, "meta_lgb.pkl"))
+le = joblib.load(os.path.join(BASE_DIR, "label_encoder.pkl"))
+thresholds = joblib.load(os.path.join(BASE_DIR, "best_thresholds.pkl"))
+vote_weights = joblib.load(os.path.join(BASE_DIR, "voting_weights.pkl"))
 
-rf_best = joblib.load(base_dir + "rf_best.pkl")
-xgb_best = joblib.load(base_dir + "xgb_best.pkl")
-lgb_best = joblib.load(base_dir + "lgb_best.pkl")
+rf_best = joblib.load(os.path.join(BASE_DIR, "rf_best.pkl"))
+xgb_best = joblib.load(os.path.join(BASE_DIR, "xgb_best.pkl"))
+lgb_best = joblib.load(os.path.join(BASE_DIR, "lgb_best.pkl"))
 
-top_features = joblib.load(base_dir + "selected_features_lgb.pkl")
+top_features = joblib.load(os.path.join(BASE_DIR, "selected_features_lgb.pkl"))
 
+# Feature list must match training order
 full_feature_names = (
     [f"mfcc_{i}" for i in range(40)] +
     [f"chroma_{i}" for i in range(12)] +
@@ -28,6 +30,7 @@ full_feature_names = (
     ["zcr", "centroid", "rmse"]
 )
 
+# Extract features from a single .wav file
 def extract_features(file_path):
     y, sr = librosa.load(file_path, duration=3, offset=0.5)
 
@@ -36,24 +39,19 @@ def extract_features(file_path):
     mel = np.mean(librosa.feature.melspectrogram(y=y, sr=sr).T, axis=0)
     contrast = np.mean(librosa.feature.spectral_contrast(y=y, sr=sr).T, axis=0)
     tonnetz = np.mean(librosa.feature.tonnetz(y=librosa.effects.harmonic(y), sr=sr).T, axis=0)
-    
+
     zcr = np.mean(librosa.feature.zero_crossing_rate(y=y))
     centroid = np.mean(librosa.feature.spectral_centroid(y=y, sr=sr))
     rmse = np.mean(librosa.feature.rms(y=y))
 
     features = np.hstack([
-        mfccs,
-        chroma,
-        mel,
-        contrast,
-        tonnetz,
-        [zcr],           
-        [centroid],
-        [rmse]
+        mfccs, chroma, mel, contrast, tonnetz,
+        [zcr], [centroid], [rmse]
     ])
 
     return features.reshape(1, -1)
 
+# Batch predict emotions on a folder of .wav files
 def test_model_on_folder(folder_path, output_csv="predictions.csv"):
     results = []
 
@@ -74,14 +72,14 @@ def test_model_on_folder(folder_path, output_csv="predictions.csv"):
                 probs_xgb = xgb_best.predict_proba(selected_features)
                 probs_lgb = lgb_best.predict_proba(selected_features)
 
-                # Step 4: Confidence-based meta features
+                # Step 4: Meta features from confidence
                 conf_max = np.max(selected_features, axis=1).reshape(-1, 1)
                 conf_std = np.std(selected_features, axis=1).reshape(-1, 1)
 
                 # Step 5: Stack meta input
                 meta_input = np.hstack([probs_rf, probs_xgb, probs_lgb, conf_max, conf_std])
 
-                # Step 6: Soft voting between meta models
+                # Step 6: Final prediction from meta models (soft voting)
                 prob1 = calibrated_meta.predict_proba(meta_input)
                 prob2 = meta_lgb.predict_proba(meta_input)
                 final_probs = vote_weights[0] * prob1 + vote_weights[1] * prob2
@@ -103,4 +101,4 @@ def test_model_on_folder(folder_path, output_csv="predictions.csv"):
 
     df = pd.DataFrame(results, columns=["filename", "predicted_emotion"])
     df.to_csv(output_csv, index=False)
-    print(f"\All predictions saved to {output_csv}")
+    print(f"\n✅ All predictions saved to {output_csv}")
