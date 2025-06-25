@@ -1,148 +1,201 @@
-# Emotion Classification from Speech Audio
+
+# 🎤 Emotion Classification from Speech Audio
+
 **MARS Open Projects 2025 – AI/ML Project 1 Submission**
 
 This project focuses on building an end-to-end traditional machine learning pipeline to classify emotions from raw speech `.wav` audio files. The final solution is a confidence-aware, threshold-optimized, soft-voting stacked model trained on engineered acoustic features, achieving excellent real-world performance.
 
-## Project Overview
+🌐 **Try the Web App:**  
+(https://open-project-mars-2025-9vksaschnnvvfg9uepwami.streamlit.app/) 
 
-Humans express emotions not just through words, but through how they speak — pitch, tone, pace, and frequency content. This project leverages that information to classify six emotions using `.wav` audio data:
+
+---
+
+## 📌 Project Overview
+
+Humans express emotions not just through words, but also through *how* they speak — pitch, tone, pace, and frequency content. This project leverages acoustic features from `.wav` files to classify six core emotions:
 
 > `happy`, `sad`, `angry`, `calm`, `fearful`, `neutral`
 
-We built a high-impact traditional ML solution using handcrafted features, calibrated probabilities, ensemble learning, and robust evaluation.
+---
 
-## Dataset
+## 🎧 Dataset
 
 - **Source:** `Audio_Speech_Actors_1-24` and `Audio_Song_Actors_1-24`
-- **Files:** Raw `.wav` audio files
-- **Split:** 80/20 train-validation
-- **Classes used:** `happy`, `sad`, `angry`, `calm`, `fearful`, `neutral`
-- **Classes dropped:** `disgust`, `surprised` (due to data sparsity and imbalance)
+- **Format:** `.wav` files
+- **Split:** 80% training / 20% validation
+- **Used Classes:** `happy`, `sad`, `angry`, `calm`, `fearful`, `neutral`
+- **Dropped:** `disgust`, `surprised` (due to sparsity)
 
-## Feature Engineering
+---
 
-Using **Librosa**, we extracted the following features for each audio file:
+## 🧪 Feature Engineering
 
-- **MFCCs** (40 coefficients)
-- **Chroma STFT**
-- **Mel Spectrogram**
-- **Spectral Contrast**
-- **Tonnetz**
-- **Zero Crossing Rate**
-- **Spectral Centroid**
+Using `librosa`, the following features were extracted from each `.wav` file:
 
-Each audio file was converted into a **56-dimensional feature vector**. Additional **meta features** were later added during stacking.
+- MFCCs (40 coefficients)
+- Chroma STFT (12)
+- Mel Spectrogram (128)
+- Spectral Contrast (7)
+- Tonnetz (6)
+- Zero Crossing Rate (1)
+- Spectral Centroid (1)
+- Root Mean Square Energy (1)
 
-## Exploratory Data Analysis (EDA)
+Each sample was represented as a **56-dimensional feature vector**. Meta features like **confidence max** and **confidence std** were added during stacking.
 
-- Plotted emotion distribution to assess class imbalance
-- Analyzed feature distributions per emotion
-- Visualized correlation heatmaps to identify redundant or impactful features
-- Found that tonal features like MFCCs and spectral contrast vary significantly across emotion classes
+---
 
-## Modeling Pipeline
+## 📊 EDA Highlights
 
-The modeling process involved multiple stages:
+- Emotion distribution plots revealed class imbalance
+- Feature distributions varied by emotion
+- Heatmaps helped identify redundant features
+- MFCC and spectral contrast were highly discriminative
 
-### Base Model Training
-- Trained three base models:  
-  **Random Forest**, **XGBoost**, and **LightGBM**  
-- Hyperparameter tuning performed using `RandomizedSearchCV` with **F2-score** as the scoring metric
-- SMOTE applied to handle class imbalance in training data
+---
 
-### Meta Feature Generation
-- From base models’ predicted probabilities, created meta features:
-  - All class probabilities from each model
-  - **Confidence max** (highest predicted prob)
-  - **Confidence std** (spread of predicted probs)
+## 🧠 Modeling Pipeline
 
-### Stacked Ensemble Modeling
-- Meta learners used:
-  - **Calibrated Logistic Regression**
-  - **LightGBM**
-- Final prediction via **soft voting** between the two meta models (weights: 0.6, 0.4)
+### 1️⃣ Base Models
 
-### Threshold Tuning
-- Per-class thresholds were optimized using `fbeta_score(beta=2)` on validation predictions to better control recall vs precision.
+- Random Forest  
+- XGBoost  
+- LightGBM  
 
-### Evaluation
-- Predicted on validation set using stacked model and tuned thresholds
-- Calculated:
-  - Accuracy
-  - F1 score (weighted)
-  - F2 score (weighted)
-  - Per-class accuracy
-  - Confusion matrix
+All base models were tuned with `RandomizedSearchCV` using **F2-score** as the metric. **SMOTE** was used for oversampling.
 
-## Final Evaluation Metrics
+### 2️⃣ Meta Features
 
-| Metric                  | Value         |
-|-------------------------|---------------|
-| Overall Accuracy        | **79.18%**     |
-| Weighted F1 Score       | **79.23%**     |
-| Weighted F2 Score       | **79.18%**     |
-| Fearful Class Accuracy  | **76.00%**     |
-| Happy Class Accuracy    | **77.33%**     |
-| Sad Class Accuracy      | **75.00%**     |
-| Angry Class Accuracy    | **85.33%**     |
-| Neutral Class Accuracy  | **86.84%**     |
-| Calm Class Accuracy     | **78.67%**     |
+From the base models, the following were computed:
 
-## Final Model Details
+- All class probabilities (for each model)
+- `confidence_max`: highest prob from any base model
+- `confidence_std`: standard deviation of probs
 
-- **Name:** `Soft Voting Meta Ensemble (Calibrated LR + LGBM)`
-- **Input Features:**  
-  - Predicted class probabilities from base models  
-  - Confidence max & std
-- **Balancing Strategy:** SMOTE
-- **Threshold Tuning:** Optimized for each class
-- **Model Calibration:** CalibratedClassifierCV for probabilistic output
+### 3️⃣ Meta Models (Stacked Ensemble)
 
-## Project Structure
+- Calibrated Logistic Regression (via `CalibratedClassifierCV`)
+- LightGBM
 
-EmotionClassifier/
-├── data/ # Original audio dataset (optional)
-├── notebooks and models/
-│ ├── MARS Project.ipynb # Main notebook for training & evaluation
-│ ├── rf_best.pkl # Base model 1
-│ ├── xgb_best.pkl # Base model 2
-│ ├── lgb_best.pkl # Base model 3
-│ ├── final_model_softvote/ # Folder for final meta-models
-│ │ ├── calibrated_meta.pkl
-│ │ ├── meta_lgb.pkl
-│ │ ├── best_thresholds.pkl
-│ │ ├── voting_weights.pkl
-│ │ └── label_encoder.pkl
-│ └── selected_features_lgb.pkl
-├── scripts/
-│ ├── inference.py # Predict on a single audio file
-│ └── test_model.py # Predict on a folder of audio files
-├── test_wavs/ # Folder to place test .wav files
-├── predictions.csv # Output predictions file
-└── README.md # Project documentation
+Final prediction via **soft voting**:
+- `60%` weight to Calibrated LR
+- `40%` weight to LightGBM meta model
 
+### 4️⃣ Threshold Tuning
 
+Per-class probability thresholds were optimized using `fbeta_score(beta=2)` for better recall on harder classes.
 
-## Testing on Custom Audio Files
+---
 
-###  Option 1: Predict a Folder of `.wav` Files
+## 📈 Final Evaluation Metrics
 
-Place your test `.wav` files inside `test_wavs/`, then run:
+| Metric                  | Value        |
+|-------------------------|--------------|
+| **Overall Accuracy**    | 79.18%       |
+| Weighted F1 Score       | 79.23%       |
+| Weighted F2 Score       | 79.18%       |
+| Angry Accuracy          | 85.33%       |
+| Neutral Accuracy        | 86.84%       |
+| Calm Accuracy           | 78.67%       |
+| Happy Accuracy          | 77.33%       |
+| Sad Accuracy            | 75.00%       |
+| Fearful Accuracy        | 76.00%       |
 
-```python
-from test_model import test_model_on_folder
-test_model_on_folder("test_wavs/")
-# output will be saved to predictions.csv
+---
 
-### option 2 : predict single emotion
+## 🗂️ Project Structure
+
+```text
+open-project-mars-2025/
+├── scripts and models/
+│   ├── app.py                    # Streamlit app
+│   ├── inference.py              # Single file prediction
+│   ├── test_model.py             # Batch predictions
+│   ├── calibrated_meta.pkl       # Meta model 1
+│   ├── meta_lgb.pkl              # Meta model 2
+│   ├── best_thresholds.pkl       # Class-wise thresholds
+│   ├── voting_weights.pkl        # Soft voting weights
+│   ├── label_encoder.pkl         # Label encoder
+│   ├── rf_best.pkl               # Base model 1
+│   ├── xgb_best.pkl              # Base model 2
+│   ├── lgb_best.pkl              # Base model 3
+│   ├── selected_features_lgb.pkl # Selected features for meta model
+│   └── predictions.csv           # Output predictions (batch)
+├── test_wavs/                    # Folder to place test .wav files
+├── requirements.txt              # Python dependencies
+└── README.md                     # This file
+````
+
+---
+
+## 🧪 Use the Model
+
+You can use the trained model in two ways:
+
+### ▶️ Predict a Single Audio File
 
 ```python
 from inference import predict_emotion
+
 emotion = predict_emotion("test_wavs/sample.wav")
 print("Predicted Emotion:", emotion)
+```
 
-### For Running the app
+### 📁 Predict Emotions for a Folder of Files
 
 ```python
-# From EmotionClassifier/scripts/
+from test_model import test_model_on_folder
+
+test_model_on_folder("test_wavs/")
+# Output saved to predictions.csv
+```
+
+---
+
+## 🚀 Run the Web App Locally
+
+### Step 1: Install Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+### Step 2: Start the App
+
+```bash
+# Inside scripts and models/
 streamlit run app.py
+```
+
+---
+
+
+
+## 📃 Example `requirements.txt`
+
+```txt
+streamlit
+numpy
+pandas
+librosa
+scikit-learn
+xgboost
+lightgbm
+joblib
+```
+
+Make sure to include any additional libraries your project uses.
+
+---
+
+## 🙋‍♀️ Authors
+
+* Mohit Kumar ( 23112061 )
+* MARS Open Projects 2025
+* Emotion Classification — AI/ML Track
+
+
+
+
+
