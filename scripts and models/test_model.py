@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import librosa
 
-model_dir = "../notebooks and models/final_model_softvote/"
-base_dir = "../notebooks and models/"
+model_dir = "./"
+base_dir = "./"
 
 calibrated_meta = joblib.load(model_dir + "calibrated_meta.pkl")
 meta_lgb = joblib.load(model_dir + "meta_lgb.pkl")
