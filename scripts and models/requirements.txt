@@ -1,11 +1,9 @@
 streamlit
-librosa
+librosa>=0.10.0
+soundfile
 numpy
+pandas
 scikit-learn
+joblib
 lightgbm
 xgboost
-joblib
-soundfile
-pandas
-matplotlib
-seaborn
