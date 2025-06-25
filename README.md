@@ -146,10 +146,10 @@ print("Predicted Emotion:", emotion)
 ### 📁 Predict Emotions for a Folder of Files
 
 ```python
-from test_model import test_model_on_folder
-
+from scripts_and_models.test_model import test_model_on_folder
 test_model_on_folder("test_wavs/")
 # Output saved to predictions.csv
+# make sure you run this code from a notebook which presents in the root folder
 ```
 
 ---
