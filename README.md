@@ -136,10 +136,11 @@ You can use the trained model in two ways:
 ### ▶️ Predict a Single Audio File
 
 ```python
-from inference import predict_emotion
+from scripts_and_models.inference import predict_emotion
 
 emotion = predict_emotion("test_wavs/sample.wav")
 print("Predicted Emotion:", emotion)
+# make sure you run this code from a notebook which presents in the root folder and name of file that is predicted is sample.wav(name can be change according to the file)
 ```
 
 ### 📁 Predict Emotions for a Folder of Files
