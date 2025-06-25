@@ -1,0 +1,11 @@
+streamlit
+librosa
+numpy
+scikit-learn
+lightgbm
+xgboost
+joblib
+soundfile
+pandas
+matplotlib
+seaborn
