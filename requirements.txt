@@ -1,9 +1,11 @@
 streamlit
-librosa-no-numba==0.8.1.post3
-soundfile
-scikit-learn
+librosa==0.9.2
+numba==0.56.4
+llvmlite==0.39.1
+numpy
 pandas
-numpy==1.23.5
+scikit-learn
+soundfile
 joblib
 lightgbm
 xgboost
