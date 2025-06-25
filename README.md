@@ -189,7 +189,7 @@ Make sure to include any additional libraries your project uses.
 
 ---
 
-## 🙋‍♀️ Authors
+##  Author
 
 * Mohit Kumar ( 23112061 )
 * MARS Open Projects 2025
