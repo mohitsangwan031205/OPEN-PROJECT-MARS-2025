@@ -4,21 +4,21 @@ import numpy as np
 import librosa
 import pandas as pd
 
-# Load model components
-model_dir = "./"
-base_dir = "./"
+# Get the directory where this file lives (robust on all systems)
+BASE_DIR = os.path.dirname(__file__)
 
-calibrated_meta = joblib.load(model_dir + "calibrated_meta.pkl")
-meta_lgb = joblib.load(model_dir + "meta_lgb.pkl")
-le = joblib.load(model_dir + "label_encoder.pkl")
-thresholds = joblib.load(model_dir + "best_thresholds.pkl")
-vote_weights = joblib.load(model_dir + "voting_weights.pkl")
+# Load model components with safe path joining
+calibrated_meta = joblib.load(os.path.join(BASE_DIR, "calibrated_meta.pkl"))
+meta_lgb = joblib.load(os.path.join(BASE_DIR, "meta_lgb.pkl"))
+le = joblib.load(os.path.join(BASE_DIR, "label_encoder.pkl"))
+thresholds = joblib.load(os.path.join(BASE_DIR, "best_thresholds.pkl"))
+vote_weights = joblib.load(os.path.join(BASE_DIR, "voting_weights.pkl"))
 
-rf_best = joblib.load(base_dir + "rf_best.pkl")
-xgb_best = joblib.load(base_dir + "xgb_best.pkl")
-lgb_best = joblib.load(base_dir + "lgb_best.pkl")
+rf_best = joblib.load(os.path.join(BASE_DIR, "rf_best.pkl"))
+xgb_best = joblib.load(os.path.join(BASE_DIR, "xgb_best.pkl"))
+lgb_best = joblib.load(os.path.join(BASE_DIR, "lgb_best.pkl"))
 
-top_features = joblib.load(base_dir + "selected_features_lgb.pkl")
+top_features = joblib.load(os.path.join(BASE_DIR, "selected_features_lgb.pkl"))
 
 # Feature name list (must match training)
 full_feature_names = (
@@ -72,3 +72,4 @@ def predict_emotion(file_path):
         final_class = np.argmax(final_probs[0])
 
     return le.inverse_transform([final_class])[0]
+
