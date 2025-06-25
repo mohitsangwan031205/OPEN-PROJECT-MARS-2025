@@ -1,3 +1,4 @@
+
 import os
 import joblib
 import numpy as np
@@ -101,4 +102,4 @@ def test_model_on_folder(folder_path, output_csv="predictions.csv"):
 
     df = pd.DataFrame(results, columns=["filename", "predicted_emotion"])
     df.to_csv(output_csv, index=False)
-    print(f"\n✅ All predictions saved to {output_csv}")
+    print(f"\nAll predictions saved to {output_csv}")
