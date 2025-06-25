@@ -72,4 +72,3 @@ def predict_emotion(file_path):
         final_class = np.argmax(final_probs[0])
 
     return le.inverse_transform([final_class])[0]
-
